@@ -4,7 +4,7 @@ import com.eCommerce.exception.APIException;
 import com.eCommerce.model.Category;
 import com.eCommerce.payload.CategoryDTO;
 import com.eCommerce.payload.CategoryResponse;
-import com.eCommerce.repository.CategoryRespository;
+import com.eCommerce.repository.CategoryRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,7 +27,7 @@ public class CategoryServiceImple implements CategoryService
     //private Long nextid = 1L;
 
     @Autowired
-    private CategoryRespository categoryrespository;
+    private CategoryRepository categoryrespository;
 
     @Autowired
     private ModelMapper modelMapper;
