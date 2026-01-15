@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "products")
 public class Product
 {
     @Id
@@ -30,4 +31,8 @@ public class Product
     @JoinColumn(name = "category_id")
     @JsonIgnore
     private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    private User user;
 }
