@@ -3,7 +3,6 @@ package com.eCommerce.service;
 import com.eCommerce.model.Product;
 import com.eCommerce.payload.ProductDTO;
 import com.eCommerce.payload.ProductResponse;
-import org.jspecify.annotations.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ProductService {
