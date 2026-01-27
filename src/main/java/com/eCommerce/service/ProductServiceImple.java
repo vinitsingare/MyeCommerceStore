@@ -1,9 +1,12 @@
 package com.eCommerce.service;
 
+import com.eCommerce.model.Cart;
 import com.eCommerce.model.Category;
 import com.eCommerce.model.Product;
+import com.eCommerce.payload.CartDTO;
 import com.eCommerce.payload.ProductDTO;
 import com.eCommerce.payload.ProductResponse;
+import com.eCommerce.repository.CartRepository;
 import com.eCommerce.repository.CategoryRepository;
 import com.eCommerce.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
@@ -32,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImple implements ProductService
@@ -41,6 +45,12 @@ public class ProductServiceImple implements ProductService
 
     @Autowired
     CategoryRepository categoryRepository;
+
+    @Autowired
+    CartService cartService;
+
+    @Autowired
+    CartRepository cartRepository;
 
     @Autowired
     ModelMapper modelMapper;
@@ -83,6 +93,10 @@ public class ProductServiceImple implements ProductService
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"CategoryNotFound"));
         Product savedproduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"ProductNotFound"));
+
+        List<Cart> carts = cartRepository.findCartsByProductId(productId);
+        carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(), productId));
+
         productRepository.delete(savedproduct);
         return modelMapper.map(savedproduct,ProductDTO.class);
     }
@@ -155,6 +169,24 @@ public class ProductServiceImple implements ProductService
         productFromDB.setSpecialPrice(product.getSpecialPrice());
 
         Product savedproduct = productRepository.save(productFromDB);
+
+        List<Cart> carts = cartRepository.findCartsByProductId(productId);
+
+        List<CartDTO> cartDTOs = carts.stream().map(cart -> {
+            CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+
+            List<ProductDTO> products = cart.getCartItems().stream()
+                    .map(p -> modelMapper.map(p.getProduct(), ProductDTO.class)).collect(Collectors.toList());
+
+            cartDTO.setProducts(products);
+
+            return cartDTO;
+
+        }).collect(Collectors.toList());
+
+        cartDTOs.forEach(cart -> cartService.updateProductInCarts(cart.getCartId(), productId));
+
+
         return modelMapper.map(savedproduct,ProductDTO.class);
     }
 

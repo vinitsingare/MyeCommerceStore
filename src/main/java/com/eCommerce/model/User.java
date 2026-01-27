@@ -63,6 +63,10 @@ public class User
     @OneToMany(mappedBy = "user",cascade = {CascadeType.MERGE,CascadeType.PERSIST},orphanRemoval = true)
     private Set<Product> products;
 
+    @ToString.Exclude
+    @OneToOne(mappedBy = "user",cascade = {CascadeType.MERGE,CascadeType.PERSIST},orphanRemoval = true)
+    private Cart cart;
+
     @Getter
     @Setter
     @ManyToMany(cascade = {CascadeType.MERGE,CascadeType.PERSIST})
