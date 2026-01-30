@@ -69,13 +69,13 @@ public class User
 
     @Getter
     @Setter
-    @ManyToMany(cascade = {CascadeType.MERGE,CascadeType.PERSIST})
-    @JoinTable
+    @OneToMany(cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+    /*@JoinTable
             (
             name = "user_address",
                     joinColumns = @JoinColumn(name = "user_id"),
                     inverseJoinColumns = @JoinColumn(name = "address_id")
-    )
+    )*/
     private List<Address> addresses = new ArrayList<>();
 
 
