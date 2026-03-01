@@ -44,9 +44,10 @@ public class JwtUtils {
 
     public String getJwtFromCookies(HttpServletRequest request)
     {
-        Cookie cookie = WebUtils.getCookie(request,jwtCookie);
+        Cookie cookie = WebUtils.getCookie(request, jwtCookie);
         if(cookie != null)
         {
+            logger.debug("JWT from cookie: {}", cookie.getValue());
             return cookie.getValue();
         }
         else{
@@ -57,18 +58,19 @@ public class JwtUtils {
     public ResponseCookie generateJwtCookie(UserDetailsImple userPrincipal)
     {
         String jwt = generateTokenFromUsername(userPrincipal.getUsername());
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie,jwt)
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt)
                 .path("/api")
                 .maxAge(24*60*60)
-                .httpOnly(false)
+                .httpOnly(true)
                 .secure(false)
+                .sameSite("Lax")
                 .build();
         return cookie;
     }
 
     public ResponseCookie getCleanJwtCookie()
     {
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie,null)
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null)
                 .path("/api")
                 .build();
         return cookie;
@@ -97,7 +99,6 @@ public class JwtUtils {
 
     public boolean validateJwtToken(String authToken) {
         try {
-            System.out.println("Validate");
             Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(authToken);
             return true;
         } catch (MalformedJwtException e) {

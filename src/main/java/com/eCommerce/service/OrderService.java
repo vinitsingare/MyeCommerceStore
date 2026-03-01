@@ -4,6 +4,8 @@ import com.eCommerce.payload.OrderDTO;
 import com.eCommerce.payload.OrderResponse;
 import jakarta.transaction.Transactional;
 
+import java.util.List;
+
 public interface OrderService {
     @Transactional
     OrderDTO placeOrder(String emailId, Long addressId, String paymentMethod, String pgName, String pgPaymentId, String pgStatus, String pgResponseMessage);
@@ -13,4 +15,7 @@ public interface OrderService {
     OrderDTO updateOrder(Long orderId, String status);
 
     OrderResponse getAllSellerOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
+
+    // Get orders for a specific user by email
+    OrderResponse getUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 }

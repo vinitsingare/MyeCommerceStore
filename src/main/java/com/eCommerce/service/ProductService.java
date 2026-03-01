@@ -10,10 +10,15 @@ public interface ProductService {
 
     ProductDTO deleteProduct(Long productId, Long categoryId);
 
+    // New method to delete product by just productId
+    ProductDTO deleteProductById(Long productId);
+
     ProductResponse getAllProduct(Integer pageNumber,Integer pageSize,String sortBy,String sortOrder);
     ProductResponse searchByCategoryId(Long categoryId,Integer pageNumber,Integer pageSize,String sortBy,String sortOrder);
 
     ProductDTO updateProduct(ProductDTO productDTO, Long productId);
 
     ProductDTO updateProductImage(Long productId, MultipartFile image);
+
+    ProductResponse searchByKeyword(String keyword, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 }

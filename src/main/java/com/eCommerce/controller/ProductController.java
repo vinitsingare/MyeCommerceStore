@@ -23,16 +23,32 @@ public class ProductController {
         return new ResponseEntity<>(savedproductDTO, HttpStatus.CREATED);
     }
 
+    // Public endpoint for all products (with optional category filter)
     @GetMapping("/api/public/product")
     public ResponseEntity<ProductResponse> getAllProduct
             (
             @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
             @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
             @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY,required = false) String sortBy,
-            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_PRODUCTS_ORDER,required = false) String sortOrder
+            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_PRODUCTS_ORDER,required = false) String sortOrder,
+            @RequestParam(name = "keyword",required = false) String keyword,
+            @RequestParam(name = "category",required = false) Long categoryId
             )
     {
-        ProductResponse productResponse = productService.getAllProduct(pageNumber,pageSize,sortBy,sortOrder);
+        ProductResponse productResponse;
+        
+        // First check for category filter
+        if (categoryId != null) {
+            productResponse = productService.searchByCategoryId(categoryId, pageNumber, pageSize, sortBy, sortOrder);
+        }
+        // Then check for keyword search
+        else if (keyword != null && !keyword.trim().isEmpty()) {
+            productResponse = productService.searchByKeyword(keyword, pageNumber, pageSize, sortBy, sortOrder);
+        }
+        // Otherwise get all products
+        else {
+            productResponse = productService.getAllProduct(pageNumber, pageSize, sortBy, sortOrder);
+        }
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
 
@@ -50,10 +66,75 @@ public class ProductController {
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
     }
 
+    // Admin endpoint for products (with optional category filter)
+    @GetMapping("/api/admin/products")
+    public ResponseEntity<ProductResponse> getAdminAllProducts
+            (
+            @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
+            @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY,required = false) String sortBy,
+            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_PRODUCTS_ORDER,required = false) String sortOrder,
+            @RequestParam(name = "keyword",required = false) String keyword,
+            @RequestParam(name = "category",required = false) Long categoryId
+            )
+    {
+        ProductResponse productResponse;
+        
+        // First check for category filter
+        if (categoryId != null) {
+            productResponse = productService.searchByCategoryId(categoryId, pageNumber, pageSize, sortBy, sortOrder);
+        }
+        // Then check for keyword search
+        else if (keyword != null && !keyword.trim().isEmpty()) {
+            productResponse = productService.searchByKeyword(keyword, pageNumber, pageSize, sortBy, sortOrder);
+        }
+        // Otherwise get all products
+        else {
+            productResponse = productService.getAllProduct(pageNumber, pageSize, sortBy, sortOrder);
+        }
+        return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    }
+
+    // Seller endpoint for products (with optional category filter)
+    @GetMapping("/api/seller/products")
+    public ResponseEntity<ProductResponse> getSellerAllProducts
+            (
+            @RequestParam(name = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER,required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) Integer pageSize,
+            @RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY,required = false) String sortBy,
+            @RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_PRODUCTS_ORDER,required = false) String sortOrder,
+            @RequestParam(name = "keyword",required = false) String keyword,
+            @RequestParam(name = "category",required = false) Long categoryId
+            )
+    {
+        ProductResponse productResponse;
+        
+        // First check for category filter
+        if (categoryId != null) {
+            productResponse = productService.searchByCategoryId(categoryId, pageNumber, pageSize, sortBy, sortOrder);
+        }
+        // Then check for keyword search
+        else if (keyword != null && !keyword.trim().isEmpty()) {
+            productResponse = productService.searchByKeyword(keyword, pageNumber, pageSize, sortBy, sortOrder);
+        }
+        // Otherwise get all products
+        else {
+            productResponse = productService.getAllProduct(pageNumber, pageSize, sortBy, sortOrder);
+        }
+        return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    }
+
     @DeleteMapping("/api/admin/categories/{categoryId}/product/{productId}")
     public ResponseEntity<ProductDTO> deleteProduct(@PathVariable Long productId,
                                                     @PathVariable Long categoryId) {
         return ResponseEntity.ok(productService.deleteProduct(productId, categoryId));
+    }
+
+    // New endpoint that matches the frontend call
+    @DeleteMapping("/api/admin/products/{productId}")
+    public ResponseEntity<ProductDTO> deleteProductById(@PathVariable Long productId) {
+        // We need to find the categoryId first, or we can modify the service
+        return ResponseEntity.ok(productService.deleteProductById(productId));
     }
 
     @PutMapping("/api/admin/product/{productId}")

@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class OrderController {
@@ -46,6 +48,18 @@ public class OrderController {
         System.out.println("StripePaymentDTO Received " + stripePaymentDto);
         PaymentIntent paymentIntent = stripeService.paymentIntent(stripePaymentDto);
         return new ResponseEntity<>(paymentIntent.getClientSecret(), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/users/orders")
+    public ResponseEntity<OrderResponse> getUserOrders(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy", defaultValue = "orderDate", required = false) String sortBy,
+            @RequestParam(name = "sortOrder", defaultValue = "desc", required = false) String sortOrder
+    ) {
+        String email = authUtil.loggedInEmail();
+        OrderResponse orderResponse = orderService.getUserOrders(email, pageNumber, pageSize, sortBy, sortOrder);
+        return new ResponseEntity<>(orderResponse, HttpStatus.OK);
     }
 
     @GetMapping("/admin/orders")
@@ -83,4 +97,6 @@ public class OrderController {
         OrderDTO order = orderService.updateOrder(orderId, orderStatusUpdateDto.getStatus());
         return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
     }
+
+
 }

@@ -74,46 +74,24 @@ public class OrderServiceImpl implements OrderService {
         payment = paymentRepository.save(payment);
         order.setPayment(payment);
 
-        Order savedOrder = orderRepository.save(order);
-
-        List<CartItem> cartItems = cart.getCartItems();
-        if (cartItems.isEmpty()) {
-            throw new APIException("Cart is empty");
-        }
-
         List<OrderItem> orderItems = new ArrayList<>();
-        for (CartItem cartItem : cartItems) {
+        for (CartItem cartItem : cart.getCartItems()) {
             OrderItem orderItem = new OrderItem();
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setDiscount(cartItem.getDiscount());
-            orderItem.setOrderedProductPrice(cartItem.getProductPrice());
-            orderItem.setOrder(savedOrder);
+            orderItem.setOrder(order);
             orderItems.add(orderItem);
         }
 
-        orderItems = orderItemRepository.saveAll(orderItems);
+        order.setOrderItems(orderItems);
+        order = orderRepository.save(order);
 
-        cart.getCartItems().forEach(item -> {
-            int quantity = item.getQuantity();
-            Product product = item.getProduct();
+        // Clear cart after order is placed
+        cart.getCartItems().clear();
+        cart.setTotalPrice(0.0);
+        cartRepository.save(cart);
 
-            // Reduce stock quantity
-            product.setQuantity(product.getQuantity() - quantity);
-
-            // Save product back to the database
-            productRepository.save(product);
-
-            // Remove items from cart
-            cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId());
-        });
-
-        OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
-        orderItems.forEach(item -> orderDTO.getOrderItems().add(modelMapper.map(item, OrderItemDTO.class)));
-
-        orderDTO.setAddressId(addressId);
-
-        return orderDTO;
+        return modelMapper.map(order, OrderDTO.class);
     }
 
     @Override
@@ -121,12 +99,15 @@ public class OrderServiceImpl implements OrderService {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
+
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+
         Page<Order> pageOrders = orderRepository.findAll(pageDetails);
-        List<Order> orders = pageOrders.getContent();
-        List<OrderDTO> orderDTOs = orders.stream()
+
+        List<OrderDTO> orderDTOs = pageOrders.getContent().stream()
                 .map(order -> modelMapper.map(order, OrderDTO.class))
                 .toList();
+
         OrderResponse orderResponse = new OrderResponse();
         orderResponse.setContent(orderDTOs);
         orderResponse.setPageNumber(pageOrders.getNumber());
@@ -182,5 +163,27 @@ public class OrderServiceImpl implements OrderService {
         return orderResponse;
     }
 
+    @Override
+    public OrderResponse getUserOrders(String email, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
 
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+
+        Page<Order> pageOrders = orderRepository.findByEmail(email, pageDetails);
+
+        List<OrderDTO> orderDTOs = pageOrders.getContent().stream()
+                .map(order -> modelMapper.map(order, OrderDTO.class))
+                .toList();
+
+        OrderResponse orderResponse = new OrderResponse();
+        orderResponse.setContent(orderDTOs);
+        orderResponse.setPageNumber(pageOrders.getNumber());
+        orderResponse.setPageSize(pageOrders.getSize());
+        orderResponse.setTotalElements(pageOrders.getTotalElements());
+        orderResponse.setTotalPages(pageOrders.getTotalPages());
+        orderResponse.setLastPage(pageOrders.isLast());
+        return orderResponse;
+    }
 }

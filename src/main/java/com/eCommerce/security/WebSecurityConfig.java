@@ -39,7 +39,6 @@ public class WebSecurityConfig
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
-
     @Autowired
     AuthEntryPointJwt unauthorizedHandler;
 
@@ -62,8 +61,6 @@ public class WebSecurityConfig
         return new BCryptPasswordEncoder();
     }
 
-
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
@@ -74,21 +71,29 @@ public class WebSecurityConfig
         http.csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
-                                .requestMatchers("/api/admin/**").permitAll()
-                                .requestMatchers("/api/public/product/**").permitAll()
-                                .requestMatchers("/api/public/**").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .anyRequest().authenticated()
-                );
+                .authorizeHttpRequests(auth -> {
+                    // Public endpoints - no authentication required
+                    auth.requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/v3/api-docs/**").permitAll()
+                            .requestMatchers("/h2-console/**").permitAll()
+                            .requestMatchers("/swagger-ui/**").permitAll()
+                            .requestMatchers("/api/test/**").permitAll()
+                            .requestMatchers("/images/**").permitAll()
+                            .requestMatchers("/api/public/**").permitAll()
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            
+                            // Admin endpoints - require ADMIN role
+                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                            
+                            // Seller endpoints - require SELLER or ADMIN role
+                            .requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER")
+                            
+                            // User endpoints - require USER, ADMIN, or SELLER role
+                            .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN", "SELLER")
+                            
+                            // All other requests require authentication
+                            .anyRequest().authenticated();
+                });
 
         http.authenticationProvider(authenticationProvider());
 
@@ -137,7 +142,6 @@ public class WebSecurityConfig
             Set<Role> sellerRoles = Set.of(sellerRole);
             Set<Role> adminRoles = Set.of(userRole, sellerRole, adminRole);
 
-
             // Create users if not already present
             if (!userRepository.existsByUsername("user1")) {
                 User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));
@@ -171,5 +175,4 @@ public class WebSecurityConfig
             });
         };
     }
-
 }
