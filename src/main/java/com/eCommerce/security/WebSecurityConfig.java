@@ -101,7 +101,7 @@ public class WebSecurityConfig
                 new org.springframework.web.cors.CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                java.util.List.of("https://ecom-frontend-cutt0qkj5-vinitsingares-projects.vercel.app")
+                java.util.List.of("https://ecom-frontend-one-alpha.vercel.app")
         );
 
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
