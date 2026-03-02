@@ -28,9 +28,9 @@ public class JwtUtils {
     @Value("${spring.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    @Value("${spring.app.CookieGen}")
+    /*@Value("${spring.app.CookieGen}")
     private String jwtCookie;
-
+*/
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
 
@@ -106,6 +106,7 @@ public class JwtUtils {
     }
 
     public String getUserNameFromJwtToken(String token) {
+        token = token.replaceAll("\\s", "");
         return Jwts.parser()
                         .verifyWith((SecretKey) key())
                 .build().parseSignedClaims(token)
@@ -118,6 +119,7 @@ public class JwtUtils {
 
     public boolean validateJwtToken(String authToken) {
         try {
+            authToken = authToken.replaceAll("\\s", "");
             Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(authToken);
             return true;
         } catch (MalformedJwtException e) {
