@@ -18,6 +18,7 @@ import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 
+// JWT utility class for token generation, validation, and cookie management
 @Component
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
