@@ -40,7 +40,7 @@ public class JwtUtils {
         return null;
     }
 
-
+/*
     public String getJwtFromCookies(HttpServletRequest request)
     {
         Cookie cookie = WebUtils.getCookie(request, jwtCookie);
@@ -74,6 +74,8 @@ public class JwtUtils {
                 .build();
         return cookie;
     }
+
+*/
 
     public String generateTokenFromUsername(String username) {
 

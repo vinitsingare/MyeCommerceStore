@@ -50,9 +50,7 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         AuthenticationResult result = authService.login(loginRequest);
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
-                        result.getJwtCookie().toString())
-                .body(result.getResponse());
+        return ResponseEntity.ok(result.getResponse());
     }
 
     @PostMapping("/signup")
@@ -75,11 +73,8 @@ public class AuthController {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<?> signoutUser(){
-        ResponseCookie cookie = authService.logoutUser();
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,
-                        cookie.toString())
-                .body(new MessageResponse("You've been signed out!"));
+    public ResponseEntity<?> signoutUser() {
+        return ResponseEntity.ok(new MessageResponse("Logged out successfully!"));
     }
 
     @GetMapping("/sellers")
