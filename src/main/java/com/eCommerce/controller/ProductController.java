@@ -144,9 +144,19 @@ public class ProductController {
         return new ResponseEntity<>(updatedproductDTO, HttpStatus.OK);
     }
 
-    @PutMapping("/api/public/product/{productId}/image")
+    // Admin: upload product image
+    @PutMapping("/api/admin/product/{productId}/image")
     ResponseEntity<ProductDTO> updateProductImage(@PathVariable Long productId,
                                                   @RequestParam("image") MultipartFile image)
+    {
+        ProductDTO updatedProduct = productService.updateProductImage(productId,image);
+        return new ResponseEntity<>(updatedProduct,HttpStatus.OK);
+    }
+
+    // Seller: upload product image
+    @PutMapping("/api/seller/product/{productId}/image")
+    ResponseEntity<ProductDTO> updateProductImageSeller(@PathVariable Long productId,
+                                                       @RequestParam("image") MultipartFile image)
     {
         ProductDTO updatedProduct = productService.updateProductImage(productId,image);
         return new ResponseEntity<>(updatedProduct,HttpStatus.OK);
