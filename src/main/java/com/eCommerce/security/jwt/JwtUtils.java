@@ -78,7 +78,7 @@ public class JwtUtils {
                 .path("/api")
                 .maxAge(24*60*60)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)      // Required for SameSite=None cross-origin (Vercel → Railway)
                 .sameSite("None")
                 .build();
         return cookie;
