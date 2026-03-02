@@ -31,12 +31,30 @@ public class JwtUtils {
     @Value("${spring.app.CookieGen}")
     private String jwtCookie;
 
-
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7).trim();
+
+        if (bearerToken == null || bearerToken.isBlank()) {
+            return null;
         }
+
+        bearerToken = bearerToken.trim();
+
+        if (bearerToken.startsWith("Bearer ")) {
+            String token = bearerToken.substring(7);
+
+            // 🔥 Remove ALL whitespace anywhere in token
+            StringBuilder cleaned = new StringBuilder();
+            for (int i = 0; i < token.length(); i++) {
+                char c = token.charAt(i);
+                if (!Character.isWhitespace(c)) {
+                    cleaned.append(c);
+                }
+            }
+
+            return cleaned.toString();
+        }
+
         return null;
     }
 
