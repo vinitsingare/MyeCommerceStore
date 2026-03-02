@@ -13,7 +13,6 @@ import com.eCommerce.repository.OrderItemRepository;
 import com.eCommerce.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,10 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.data.domain.Pageable;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,20 +46,8 @@ public class ProductServiceImple implements ProductService
     @Autowired
     ModelMapper modelMapper;
 
-    // Use the server port from application.properties
-    @Value("${server.port:5000}")
-    private String serverPort;
-
-    // Helper method to convert filename to full URL
-    private String getImageUrl(String imageName) {
-        if (imageName == null || imageName.isEmpty()) {
-            return "http://localhost:" + serverPort + "/images/def.png";
-        }
-        if (imageName.startsWith("http://") || imageName.startsWith("https://")) {
-            return imageName;
-        }
-        return "http://localhost:" + serverPort + "/images/" + imageName;
-    }
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     @Override
     public ProductDTO addProduct(Long categoryId, ProductDTO productDTO) {
@@ -86,14 +69,12 @@ public class ProductServiceImple implements ProductService
         if(isProductNotPresent) {
             Product product = modelMapper.map(productDTO, Product.class);
             product.setCategory(category);
-            product.setImage("def.png");
+            product.setImage("default.png");
             double specialPrice = product.getPrice() -
                     ((product.getDiscount() * 0.01) * product.getPrice());
             product.setSpecialPrice(specialPrice);
             Product savedProduct = productRepository.save(product);
-            ProductDTO result = modelMapper.map(savedProduct, ProductDTO.class);
-            result.setImage(getImageUrl(result.getImage()));
-            return result;
+            return modelMapper.map(savedProduct, ProductDTO.class);
         }
         else{
             throw new RuntimeException("Product Already Present");
@@ -157,11 +138,7 @@ public class ProductServiceImple implements ProductService
 
         List<Product> products = productPage.getContent();
         List<ProductDTO> productDTOS = products.stream()
-                .map(product -> {
-                    ProductDTO dto = modelMapper.map(product, ProductDTO.class);
-                    dto.setImage(getImageUrl(dto.getImage()));
-                    return dto;
-                })
+                .map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
@@ -187,11 +164,7 @@ public class ProductServiceImple implements ProductService
 
         List<Product> products = productPageById.getContent();
         List<ProductDTO> productDTOS = products.stream()
-                .map(product -> {
-                    ProductDTO dto = modelMapper.map(product, ProductDTO.class);
-                    dto.setImage(getImageUrl(dto.getImage()));
-                    return dto;
-                })
+                .map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
@@ -235,57 +208,26 @@ public class ProductServiceImple implements ProductService
 
         cartDTOs.forEach(cart -> cartService.updateProductInCarts(cart.getCartId(), productId));
 
-        ProductDTO result = modelMapper.map(savedproduct, ProductDTO.class);
-        result.setImage(getImageUrl(result.getImage()));
-        return result;
+        return modelMapper.map(savedproduct, ProductDTO.class);
     }
 
     @Override
     public ProductDTO updateProductImage(Long productId, MultipartFile image) {
-        //get product from db
+        // Get product from DB
         Product productFromDB = productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"ProductNotFound"));
-        //upload image to server
-        String path = "images/";
-        //get the file name of image
-        String fileName = uploadImage(path,image);
-        //update new file name to product
-        productFromDB.setImage(fileName);
-        //save updated product
+
+        // Upload image to Cloudinary and get the secure URL
+        String imageUrl = cloudinaryService.uploadImage(image);
+
+        // Store the full Cloudinary URL in the product
+        productFromDB.setImage(imageUrl);
+
+        // Save updated product
         Product updatedProduct = productRepository.save(productFromDB);
-        //return dto mapped by product to dto with full image URL
-        ProductDTO result = modelMapper.map(updatedProduct, ProductDTO.class);
-        result.setImage(getImageUrl(result.getImage()));
-        return result;
-    }
 
-    private String uploadImage(String path, MultipartFile file) {
-
-        // get original file name
-        String originalFileName = file.getOriginalFilename();
-
-        // generate unique file name (to avoid overwrite)
-        String fileName = System.currentTimeMillis() + "_" + originalFileName;
-
-        // create full file path
-        String fullPath = path + File.separator + fileName;
-
-        try {
-            // create directory if not exists
-            File dir = new File(path);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            // save file
-            Files.copy(file.getInputStream(), Paths.get(fullPath));
-
-        } catch (IOException e) {
-            throw new RuntimeException("Image upload failed");
-        }
-
-        // return file name to store in DB
-        return fileName;
+        // Return DTO (image field already contains full Cloudinary URL)
+        return modelMapper.map(updatedProduct, ProductDTO.class);
     }
 
     @Override
@@ -300,11 +242,7 @@ public class ProductServiceImple implements ProductService
 
         List<Product> products = productPage.getContent();
         List<ProductDTO> productDTOS = products.stream()
-                .map(product -> {
-                    ProductDTO dto = modelMapper.map(product, ProductDTO.class);
-                    dto.setImage(getImageUrl(dto.getImage()));
-                    return dto;
-                })
+                .map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
 
         ProductResponse productResponse = new ProductResponse();
