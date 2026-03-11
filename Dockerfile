@@ -1,8 +1,12 @@
-FROM maven:3.8.1-openjdk-17 AS build
-WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
+FROM eclipse-temurin:21-jdk
 
-FROM openjdk:17-slim
-COPY --from=build /app/target/MyeCommerceStore-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["java","-jar","app.jar"]
+WORKDIR /app
+
+COPY . .
+
+RUN chmod +x mvnw
+RUN ./mvnw clean package -DskipTests
+
+EXPOSE 8080
+
+CMD ["java","-jar","target/MyeCommerceStore-0.0.1-SNAPSHOT.jar"]
