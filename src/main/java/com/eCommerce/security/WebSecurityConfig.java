@@ -81,6 +81,7 @@ public class WebSecurityConfig
                             .requestMatchers("/api/test/**").permitAll()
                             .requestMatchers("/images/**").permitAll()
                             .requestMatchers("/api/public/**").permitAll()
+                            .requestMatchers("/api/addresses/**").permitAll()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/seller/**").hasAnyRole("ADMIN", "SELLER")
