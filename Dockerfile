@@ -7,8 +7,6 @@ COPY . .
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-RUN ls target
-
 EXPOSE 8080
 
-CMD ["sh", "-c", "java -jar target/*.jar"]
+CMD ["java","-jar","target/MyeCommerceStore-0.0.1-SNAPSHOT.jar"]
